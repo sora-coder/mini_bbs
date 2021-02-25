@@ -13,9 +13,19 @@
 		if($_POST['password'] === ''){//passwordが空
 			$error['password'] = 'blank';
 		}
+		$filename = $_FILES['image']['name'];
+		if(!empty($filename)){//$filenameがある
+			$ext = substr($filename, -3);//filenameの最後から3文字を$extに代入する
+			if($ext != 'jpg' && $ext != 'gif' && $ext != 'png'){
+				$error['image'] = 'type';
+			}
+		}
 
 		if(empty($error)){//$errorが空
+			$image = date('YmdHis') . $_FILES['image']['name'];//表示例) 20210225132801myface.png
+			move_uploaded_file($_FILES['image']['tmp_name'], '../member_picture/' . $image);//['tmp_name']=一時的にアップロードされている場所から'../member_picture/' . $imageに移して保存する
 			$_SESSION['join'] = $_POST;//joinに$_postの内容を保管する
+			$_SESSION['join']['image'] = $image;//joinのimageに$image(ファイルの名前)を保管する
 			header('location: check.php');//check.phpにジャンプ
 			exit();
 		}
@@ -44,6 +54,7 @@
 <div id="content">
 <p>次のフォームに必要事項をご記入ください。</p>
 <form action="" method="post" enctype="multipart/form-data">
+	<!-- enctype="multipart/form-data" ファイルのアップロード時はform属性に付与する -->
 	<dl>
 		<dt>ニックネーム<span class="required">必須</span></dt>
 		<dd>
@@ -71,6 +82,10 @@
 		<dt>写真など</dt>
 		<dd>
         	<input type="file" name="image" size="35" value="test"  />
+			<!-- type="file"で指定すると$_FILESに入る -->
+			<?php if($error['image'] === 'type'): ?>
+			<p class="error">＊写真などは「.gif」または「.jpg」「.png」の画像を指定してください</p>
+			<?php endif; ?>
         </dd>
 	</dl>
 	<div><input type="submit" value="入力内容を確認する" /></div>
