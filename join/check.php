@@ -1,3 +1,11 @@
+<?php
+session_start();//セッションスタート
+
+if(!isset($_SESSION['join'])){//joinに何も入力されていなければ
+	header('location: index.php');//index.phpにジャンプする
+	exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -21,9 +29,11 @@
 	<dl>
 		<dt>ニックネーム</dt>
 		<dd>
+		<?php print(htmlspecialchars($_SESSION['join']['name'],ENT_QUOTES)); ?>
         </dd>
 		<dt>メールアドレス</dt>
 		<dd>
+		<?php print(htmlspecialchars($_SESSION['join']['email'],ENT_QUOTES)); ?>
         </dd>
 		<dt>パスワード</dt>
 		<dd>

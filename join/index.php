@@ -1,22 +1,28 @@
 <?php
-	if(!empty($_POST)){
-		if($_POST['name'] === ''){
+	session_start();//セッションスタート
+	if(!empty($_POST)){//何か入力された状態なら（初期画面じゃなければ）
+		if($_POST['name'] === ''){// nameが空
 			$error['name'] = 'blank';
 		}
-		if($_POST['email'] === ''){
+		if($_POST['email'] === ''){//emailが空
 			$error['email'] = 'blank';
 		}
-		if(strlen($_POST['password']) < 4){
+		if(strlen($_POST['password']) < 4){//passwordが4文字未満
 			$error['password'] = 'length';
 		}
-		if($_POST['password'] === ''){
+		if($_POST['password'] === ''){//passwordが空
 			$error['password'] = 'blank';
 		}
 
-		if(empty($error)){
-			header('location: check.php');
+		if(empty($error)){//$errorが空
+			$_SESSION['join'] = $_POST;//joinに$_postの内容を保管する
+			header('location: check.php');//check.phpにジャンプ
 			exit();
 		}
+	}
+
+	if($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])){
+		$_POST = $_SESSION['join'];
 	}
 ?>
 <!DOCTYPE html>
@@ -48,7 +54,7 @@
 		</dd>
 		<dt>メールアドレス<span class="required">必須</span></dt>
 		<dd>
-        	<input type="text" name="email" size="35" maxlength="255" value="<?php print(htmlspecialchars($_REQUEST['email'],ENT_QUOTES)); ?>" />
+        	<input type="text" name="email" size="35" maxlength="255" value="<?php print(htmlspecialchars($_POST['email'],ENT_QUOTES)); ?>" />
 			<?php if($error['email'] === 'blank'): ?>
 			<p class="error">＊メールアドレスを入力してください</p>
 			<?php endif; ?>
