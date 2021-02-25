@@ -21,8 +21,8 @@
 		}
 	}
 
-	if($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])){
-		$_POST = $_SESSION['join'];
+	if($_REQUEST['action'] == 'rewrite' && isset($_SESSION['join'])){//actionがrewriteかつセッションのjoinに入力があれば
+		$_POST = $_SESSION['join'];//$_POSTに$_SESSION['join']の内容を代入する
 	}
 ?>
 <!DOCTYPE html>
