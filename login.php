@@ -2,7 +2,12 @@
   session_start();
   require('dbconnect.php');
 
+  if($_COOKIE['email'] !== ''){//クッキーが残っていたら
+    $email = $_COOKIE['email'];//下のメールアドレス欄で表示するために$emailに代入する
+  }
+
   if(empty(!$_POST)){
+    $email = $_POST['email'];//ログインするボタンを押した時点で下のメールアドレス欄の表示をクッキーから入力したものに変更する
     if($_POST['email'] !== '' && $_POST['password'] !== ''){
       $login = $db->prepare('SELECT * FROM members WHERE email=? AND password=?');//emailとpasswordが同じものを取得
       $login->execute(array(
@@ -14,6 +19,9 @@
         $_SESSION['id'] = $member['id'];
         $_SESSION['time'] = time();//今の時間を保管する
           //sessionの情報は抜き出される可能性があるのでパスワードなどの個人情報はsessionには保存しない
+        if($_POST['save'] === 'on'){//チェックボックスがチェックされていたら
+          setcookie('email', $_POST['email'], time()+60*60*24*14);//emailを二週間クッキーに保管する
+        }
         header('location: index.php');
         exit();
       }else{
@@ -48,7 +56,7 @@
       <dl>
         <dt>メールアドレス</dt>
         <dd>
-          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['email'],ENT_QUOTES); ?>" />
+          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($email,ENT_QUOTES); ?>" />
           <?php if($error['login'] === 'blank'): ?>
             <p class="error">＊メールアドレスとパスワードをご記入ください</p>
           <?php endif; ?>
