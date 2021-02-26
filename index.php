@@ -3,7 +3,7 @@
   require('dbconnect.php');
 
   if(isset($_SESSION['id']) && $_SESSION['time'] + 3600 > time()){//最後の行動からした時間から１時間以下なら
-    $_SESSION['time'] = time();
+    $_SESSION['time'] = time();//sessionの時間を更新する
 
     $members = $db->prepare('SELECT * FROM members WHERE id=?');
     $members->execute(array($_SESSION['id']));
@@ -12,6 +12,21 @@
     header('location: login.php');
     exit();
   }
+
+  if(!empty($_POST)){
+    if($_POST['message'] !== ''){
+      $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, created=NOW()');//メッセージを登録する
+      $message->execute(array(
+        $member['id'],
+        $_POST['message']
+      ));
+      header('location: index.php');//データベースに登録したあと素のindex.phpに移動することで再読込で登録しないようにする($_POSTを空にする)
+      exit();
+    }
+  }
+
+  $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC');
+    //memberにm postsにp というエイリアスを付けてmemberのidとpostsのmember_idを一致させcreatedで並び替える
 ?>
 
 <!DOCTYPE html>
@@ -47,16 +62,18 @@
       </div>
     </form>
 
+<?php foreach($posts as $post): ?>       <!-- dbで取得した$postsを順に取得する -->
     <div class="msg">
-    <img src="member_picture" width="48" height="48" alt="" />
-    <p><span class="name">（）</span>[<a href="index.php?res=">Re</a>]</p>
-    <p class="day"><a href="view.php?id="></a>
+    <img src="member_picture/<?php print(htmlspecialchars($post['picture'],ENT_QUOTES)); ?>" width="48" height="48" alt="<?php print(htmlspecialchars($post['name'],ENT_QUOTES)); ?> " />
+    <p><?php print(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php print(htmlspecialchars($post['name'],ENT_QUOTES)); ?>) </span>[<a href="index.php?res=">Re</a>]</p>
+    <p class="day"><a href="view.php?id="><?php print(htmlspecialchars($post['created'],ENT_QUOTES)); ?></a>
 <a href="view.php?id=">
 返信元のメッセージ</a>
 [<a href="delete.php?id="
 style="color: #F33;">削除</a>]
     </p>
     </div>
+<?php endforeach; ?>
 
 <ul class="paging">
 <li><a href="index.php?page=">前のページへ</a></li>
