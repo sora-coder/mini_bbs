@@ -1,3 +1,26 @@
+<?php
+  session_start();
+  require('dbconnect.php');
+
+  if(empty(!$_POST)){
+    if($_POST['email'] !== '' && $_POST['password'] !== ''){
+      $login = $db->prepare('SELECT * FROM members WHERE email=? password=?');//emailとpasswordが同じものを取得
+      $login->execute(array(
+        $_POST['email'],
+        sha1($_POST['password']))//データベース登録時の暗号化に使ったsha1を使うと同じ暗号文になる
+      );
+      $member = $login->fetch();
+      if($member){
+        $_SESSION['id'] = $login['id'];
+        $_SESSION['time'] = time();//今の時間を保管する
+          //sessionの情報は抜き出される可能性があるのでパスワードなどの個人情報はsessionには保存しない
+        header('location: index.php');
+        exit();
+      }
+    }
+  }
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
