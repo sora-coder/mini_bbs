@@ -1,5 +1,6 @@
 <?php
 	session_start();//セッションスタート
+	require('../dbconnect.php');
 	if(!empty($_POST)){//何か入力された状態なら（初期画面じゃなければ）
 		if($_POST['name'] === ''){// nameが空
 			$error['name'] = 'blank';
@@ -20,7 +21,15 @@
 				$error['image'] = 'type';
 			}
 		}
-
+		//アカウントの重複のチェック
+		if(empty($error)){
+			$member = $db->prepare('SELECT COUNT(*) AS cnt FROM members WHERE email=?');
+			$member->execute(array($_POST['email']));
+			$record = $member->fetch();
+			if($record['cnt'] > 0){
+				$error['email'] = 'duplicate';
+			}
+		}
 		if(empty($error)){//$errorが空
 			$image = date('YmdHis') . $_FILES['image']['name'];//表示例) 20210225132801myface.png
 			move_uploaded_file($_FILES['image']['tmp_name'], '../member_picture/' . $image);//['tmp_name']=一時的にアップロードされている場所から'../member_picture/' . $imageに移して保存する
@@ -68,6 +77,9 @@
         	<input type="text" name="email" size="35" maxlength="255" value="<?php print(htmlspecialchars($_POST['email'],ENT_QUOTES)); ?>" />
 			<?php if($error['email'] === 'blank'): ?>
 			<p class="error">＊メールアドレスを入力してください</p>
+			<?php endif; ?>
+			<?php if($error['email'] === 'duplicate'): ?>
+			<p class="error">＊指定されたメールアドレスは、既に登録されています</p>
 			<?php endif; ?>
 		<dt>パスワード<span class="required">必須</span></dt>
 		<dd>
