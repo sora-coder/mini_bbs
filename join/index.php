@@ -82,7 +82,7 @@
 		<dt>写真など</dt>
 		<dd>
         	<input type="file" name="image" size="35" value="test"  />
-			<!-- type="file"で指定すると$_FILESに入る -->
+				<!-- type="file"で指定すると$_FILESに入る -->
 			<?php if($error['image'] === 'type'): ?>
 			<p class="error">＊写真などは「.gif」または「.jpg」「.png」の画像を指定してください</p>
 			<?php endif; ?>

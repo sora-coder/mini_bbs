@@ -1,10 +1,25 @@
 <?php
 session_start();//セッションスタート
+require('../dbconnect.php');//db接続
 
 if(!isset($_SESSION['join'])){//joinに何も入力されていなければ
 	header('location: index.php');//index.phpにジャンプする
 	exit();
 }
+
+if(!empty($_POST)){
+	$statement = $db->prepare('INSERT INTO members SET name=?, email=?, password=?, picture=?, created=NOW()');
+	$statement->execute(array(
+		$_SESSION['join']['name'],
+		$_SESSION['join']['email'],
+		sha1($_SESSION['join']['password']),//sha1でパスワードを暗号化する
+		$_SESSION['join']['image']
+	));
+	unset($_SESSION['join']);//$_SESSION['join']を空にする
+	header('location: thanks.php');
+	exit();
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="ja">
