@@ -4,19 +4,23 @@
 
   if(empty(!$_POST)){
     if($_POST['email'] !== '' && $_POST['password'] !== ''){
-      $login = $db->prepare('SELECT * FROM members WHERE email=? password=?');//emailとpasswordが同じものを取得
+      $login = $db->prepare('SELECT * FROM members WHERE email=? AND password=?');//emailとpasswordが同じものを取得
       $login->execute(array(
         $_POST['email'],
         sha1($_POST['password']))//データベース登録時の暗号化に使ったsha1を使うと同じ暗号文になる
       );
       $member = $login->fetch();
       if($member){
-        $_SESSION['id'] = $login['id'];
+        $_SESSION['id'] = $member['id'];
         $_SESSION['time'] = time();//今の時間を保管する
           //sessionの情報は抜き出される可能性があるのでパスワードなどの個人情報はsessionには保存しない
         header('location: index.php');
         exit();
+      }else{
+        $error['login'] = 'failed';
       }
+    }else{
+      $error['login'] = 'blank';
     }
   }
 ?>
@@ -44,11 +48,17 @@
       <dl>
         <dt>メールアドレス</dt>
         <dd>
-          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['email']); ?>" />
+          <input type="text" name="email" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['email'],ENT_QUOTES); ?>" />
+          <?php if($error['login'] === 'blank'): ?>
+            <p class="error">＊メールアドレスとパスワードをご記入ください</p>
+          <?php endif; ?>
+          <?php if($error['login'] === 'failed'): ?>
+            <p class="error">＊ログインに失敗しました。正しくご記入ください</p>
+          <?php endif; ?>
         </dd>
         <dt>パスワード</dt>
         <dd>
-          <input type="password" name="password" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['password']); ?>" />
+          <input type="password" name="password" size="35" maxlength="255" value="<?php echo htmlspecialchars($_POST['password'], ENT_QUOTES); ?>" />
         </dd>
         <dt>ログイン情報の記録</dt>
         <dd>
