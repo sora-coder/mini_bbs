@@ -26,8 +26,8 @@
 			$member = $db->prepare('SELECT COUNT(*) AS cnt FROM members WHERE email=?');
 			$member->execute(array($_POST['email']));
 			$record = $member->fetch();
-			if($record['cnt'] > 0){
-				$error['email'] = 'duplicate';
+			if($record['cnt'] > 0){//指定したemailの件数(cnt)が1件以上あったら
+				$error['email'] = 'duplicate';//duplicate=重複
 			}
 		}
 		if(empty($error)){//$errorが空
