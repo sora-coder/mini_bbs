@@ -15,10 +15,11 @@
 
   if(!empty($_POST)){
     if($_POST['message'] !== ''){
-      $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, created=NOW()');//メッセージを登録する
+      $message = $db->prepare('INSERT INTO posts SET member_id=?, message=?, reply_message_id=?, created=NOW()');//メッセージを登録する
       $message->execute(array(
         $member['id'],
-        $_POST['message']
+        $_POST['message'],
+        $_POST['reply_post_id']
       ));
       header('location: index.php');//データベースに登録したあと素のindex.phpに移動することで再読込で登録しないようにする($_POSTを空にする)
       exit();
@@ -27,6 +28,15 @@
 
   $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC');
     //memberにm postsにp というエイリアスを付けてmemberのidとpostsのmember_idを一致させcreatedで並び替える
+
+  if(isset($_REQUEST['res'])){//Reボタンがクリックされたら
+    //返信の処理
+    $response = $db->prepare('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id AND p.id=?');
+    $response->execute(array($_REQUEST['res']));//resのidを取得する
+
+    $table = $response->fetch();
+    $message = '@' . $table['name'] . ' ' . $table['message'];//resのnameとmessageを取得する
+  }
 ?>
 
 <!DOCTYPE html>
@@ -51,8 +61,8 @@
       <dl>
         <dt><?php print(htmlspecialchars($member['name'],ENT_QUOTES)); ?> さん、メッセージをどうぞ</dt>
         <dd>
-          <textarea name="message" cols="50" rows="5"></textarea>
-          <input type="hidden" name="reply_post_id" value="" />
+          <textarea name="message" cols="50" rows="5"><?php print(htmlspecialchars($message, ENT_QUOTES)); ?></textarea><!-- Reをクリックしたメッセージを表示させる -->
+          <input type="hidden" name="reply_post_id" value="<?php print(htmlspecialchars($_REQUEST['res'], ENT_QUOTES)); ?>" />
         </dd>
       </dl>
       <div>
@@ -65,7 +75,7 @@
 <?php foreach($posts as $post): ?>       <!-- dbで取得した$postsを順に取得する -->
     <div class="msg">
     <img src="member_picture/<?php print(htmlspecialchars($post['picture'],ENT_QUOTES)); ?>" width="48" height="48" alt="<?php print(htmlspecialchars($post['name'],ENT_QUOTES)); ?> " />
-    <p><?php print(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php print(htmlspecialchars($post['name'],ENT_QUOTES)); ?>) </span>[<a href="index.php?res=">Re</a>]</p>
+    <p><?php print(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php print(htmlspecialchars($post['name'],ENT_QUOTES)); ?>) </span>[<a href="index.php?res=<?php print(htmlspecialchars($post['id'], ENT_QUOTES)); ?>">Re</a>]</p>
     <p class="day"><a href="view.php?id="><?php print(htmlspecialchars($post['created'],ENT_QUOTES)); ?></a>
 <a href="view.php?id=">
 返信元のメッセージ</a>
@@ -74,7 +84,6 @@ style="color: #F33;">削除</a>]
     </p>
     </div>
 <?php endforeach; ?>
-
 <ul class="paging">
 <li><a href="index.php?page=">前のページへ</a></li>
 <li><a href="index.php?page=">次のページへ</a></li>
