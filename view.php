@@ -1,3 +1,15 @@
+<?php
+  session_start();
+  require('dbconnect.php');
+
+  if(empty($_REQUEST['id'])){
+    header('location: index.php');
+    exit();
+  }
+
+  $posts = $db->prepare('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id AND p.id=?');
+  $posts->execute(array($_REQUEST['id']));
+?>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -16,14 +28,15 @@
   </div>
   <div id="content">
   <p>&laquo;<a href="index.php">一覧にもどる</a></p>
-
+  <?php if($post = $posts->fetch()): ?><!-- $postに$postsから取得したものが代入できたら(正常に値が入れば) -->
     <div class="msg">
-    <img src="member_picture/" />
-    <p><span class="name">（）</span></p>
-    <p class="day"></p>
+    <img src="member_picture/<?php print(htmlspecialchars($post['picture'], ENT_QUOTES)); ?>" />
+    <p><?php print(htmlspecialchars($post['message'], ENT_QUOTES)); ?><span class="name">（<?php print(htmlspecialchars($post['name'], ENT_QUOTES)); ?> ）</span></p>
+    <p class="day"><?php print(htmlspecialchars($post['created'], ENT_QUOTES)); ?></p>
     </div>
-
-	<p>その投稿は削除されたか、URLが間違えています</p>
+  <?php else: ?>
+	  <p>その投稿は削除されたか、URLが間違えています</p>
+  <?php endif; ?>
   </div>
 </div>
 </body>
