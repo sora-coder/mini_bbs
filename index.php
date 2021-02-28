@@ -26,8 +26,22 @@
     }
   }
 
-  $posts = $db->query('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC');
+  $page = $_REQUEST['page'];
+  if($_REQUEST['page'] == ''){//ページ指定がないときは1ページ目を表示させる
+    $page = 1;
+  }
+  $page = max($page, 1);//$pageと1を比べて1のほうが大きいときは$pageに1を入れる
+
+  $counts = $db->query('SELECT COUNT(*) AS cnt FROM posts');//メッセージの件数を取得する
+  $cnt = $counts->fetch();
+  $maxpage = ceil($cnt['cnt'] / 5);//メッセージ件数を5で割って最大ページ数を計算する(ceilは小数点を切り上げる)
+  $page = min($page, $maxpage);//$pageと$maxpageを比べて小さい方が$pageに入る
+
+  $start = ($page - 1) * 5;//下のSELECT文で何個目から表示させるか(LIMITの後の?の部分)
+  $posts = $db->prepare('SELECT m.name, m.picture, p.* FROM members m, posts p WHERE m.id=p.member_id ORDER BY p.created DESC LIMIT ?, 5');
     //memberにm postsにp というエイリアスを付けてmemberのidとpostsのmember_idを一致させcreatedで並び替える
+  $posts->bindParam(1, $start, PDO::PARAM_INT);//?の部分に$startを数字として入れる(executeのパラメータとして指定すると文字列として入る)
+  $posts->execute();
 
   if(isset($_REQUEST['res'])){//Reボタンがクリックされたら
     //返信の処理
@@ -89,8 +103,16 @@
     </div>
 <?php endforeach; ?>
 <ul class="paging">
-<li><a href="index.php?page=">前のページへ</a></li>
-<li><a href="index.php?page=">次のページへ</a></li>
+<?php if($page > 1): ?>
+  <li><a href="index.php?page=<?php print($page - 1); ?>">前のページへ</a></li>
+<?php else: ?>
+  <li>前のページへ</li>
+<?php endif; ?>
+<?php if($page < $maxpage): ?>
+  <li><a href="index.php?page=<?php print($page + 1); ?>">次のページへ</a></li>
+<?php else: ?>
+  <li>次のページへ</li>
+<?php endif; ?>
 </ul>
   </div>
 </div>
